@@ -52,7 +52,7 @@
 <body>
 
 <div class="container">
-    <h2>⚖️ İlama Bağlı Borçlar Hesaplama</h2>
+    <h2>⚖️ Borç Hesaplama</h2>
 
     <div class="lab-panel">
         <strong style="color: #d35400; display: block; margin-bottom: 10px;">🧪 Serbest Faiz Hesaplama</strong>
@@ -64,7 +64,7 @@
             <div><label style="font-size: 12px; font-weight: bold;">Hesaplanan Faiz</label><input type="text" id="labResult" readonly placeholder="0,00" style="background: #fff; font-weight: bold; border: 1px solid var(--warning); color: var(--danger);"></div>
             <button class="btn" style="background: var(--warning); color: #000;" onclick="addLabResultToMain()">🚀 Alacak Kalemine Ekle</button>
         </div>
-        <small class="info-text">* Sadece Anaparaya göre seçilen Faiz Türünde hesap yapar. "İşlemiş Faiz" olarak hesaba eklemek için "Alacak Kalemine Ekle" butonunu tıklayın.</small>
+        <small class="info-text">* Sadece Anaparaya göre seçilen Faiz türünde hesap yapar. "İşlemiş Faiz" olarak hesaba eklemek için "Alacak Kalemine Ekle" butonuna tıklayın.</small>
     </div>
 
     <h3>1. Alacak Kalemleri</h3>
@@ -101,7 +101,7 @@
         <tbody oninput="calculate()" onchange="calculate()"></tbody>
     </table>
     <button class="btn btn-add" onclick="addPayment()">➕ Ödeme Ekle</button>
-    <small class="info-text">* Ara ödemeler varsa ekleyebilirsiniz. Ara ödemeler TBK m. 100'e göre hesaplanacaktır.</small>
+    <small class="info-text">* Ara ödemeler varsa ekleyebilirsiniz. Ara ödemeler, TBK m. 100'e göre hesaplanacaktır.</small>
 
     <div class="calc-row">
         <div class="date-grid">
@@ -140,9 +140,9 @@
         <input type="text" id="newInterestName" placeholder="Yeni Faiz Adı (Örn: REESKONT)" style="width:250px; display:inline-block; margin-right:10px;">
         <button class="btn" style="background:var(--blue); color:white;" onclick="addNewInterestType()">➕ Yeni Faiz Türü Tanımla</button>
         <small class="info-text" style="margin-top:8px;">* Yeni bir faiz türü ismi girin ve açılan pencereden tarih ve oranları ekleyin.</small>
-    </div>
-    
-    <small class="info-text" style="text-align:center;">* Yasal Faiz ve Avans Faiz oranlarını güncelleyebilirsiniz. Güncelleme yaptıktan sonra "Ayarları Yedekle" butonunu tıklayın.</small>
+    	<small class="info-text" style="text-align:center;">* Yasal Faiz ve Avans Faiz oranlarını güncelleyebilirsiniz. Güncelleme yaptıktan sonra "Ayarları Yedekle" butonunu tıklayın.</small>
+	</div>
+        
 	<small class="info-text" style="text-align:center;">Bu küçük araç deneme amaçlıdır. Hiçbir veriyi hafızaya kaydetmez. Hesaplama sonucunu garanti etmez. Sonuç profesyonel olarak teyit edilmelidir. </small>
 </div>
 
