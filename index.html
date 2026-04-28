@@ -143,7 +143,7 @@
     	<small class="info-text" style="text-align:center;">* Yasal Faiz ve Avans Faiz oranlarını güncelleyebilirsiniz. Güncelleme yaptıktan sonra "Ayarları Yedekle" butonunu tıklayın.</small>
 	</div>
         
-	<small class="info-text" style="text-align:center;">Bu küçük araç deneme amaçlıdır. Hiçbir veriyi hafızaya kaydetmez. Hesaplama sonucunu garanti etmez. Sonuç profesyonel olarak teyit edilmelidir. </small>
+	<small class="info-text" style="text-align:center;">Bu hesaplama bilgilendirme amaçlıdır. Hesaplamaların güncelliği ve doğruluğu kontrol edilmelidir.</small>
 </div>
 
 <div id="overlay" class="overlay" onclick="closeModal()"></div>
@@ -248,21 +248,21 @@ function updateInterestSelectors() {
     labSelect.innerHTML = '';
     settingsCont.innerHTML = '';
 
-    // Ayarlar kısmındaki butonları oluştur
+    
     Object.keys(rateData).forEach(key => {
-        // Lab (Serbest Hesap) dropdown'ı güncelle
+    
         let opt = document.createElement('option'); 
         opt.value = key; 
         opt.innerText = key.toUpperCase();
         labSelect.appendChild(opt);
 
-        // Buton Grubu (Ayar + Silme)
+        
         const btnGroup = document.createElement('div');
         btnGroup.style.display = "inline-flex";
         btnGroup.style.alignItems = "center";
         btnGroup.style.margin = "5px";
 
-        // Düzenleme Butonu
+        
         const btn = document.createElement('button'); 
         btn.className = 'btn'; 
         btn.style.background = '#ddd';
@@ -271,7 +271,7 @@ function updateInterestSelectors() {
         btn.onclick = () => showModal(key);
         btnGroup.appendChild(btn);
 
-        // SADECE EKLELENLER İÇİN SİLME BUTONU
+        
         if (key !== 'yasal' && key !== 'avans') {
             const delBtn = document.createElement('button');
             delBtn.innerHTML = "✖";
@@ -291,7 +291,7 @@ function updateInterestSelectors() {
 
     labSelect.value = rateData[curLab] ? curLab : 'yasal';
 
-    // Alacak Kalemleri tablosundaki tüm seçim kutularını güncelle
+   
     selects.forEach(select => {
         const val = select.value; 
         select.innerHTML = '';
@@ -306,7 +306,7 @@ function updateInterestSelectors() {
         fz.innerText = 'FAİZSİZ';
         select.appendChild(fz);
         
-        // Silinen bir faiz seçiliyse boşa düşmemesi için Yasal'a çek
+   
         select.value = (rateData[val] || val === 'faizsiz') ? val : 'yasal';
     });
 }
@@ -426,7 +426,7 @@ function clearAll() {
     }
 }
 
-// DISA AKTARMA
+
 function downloadPDF() {
     const { jsPDF } = window.jspdf; const doc = new jsPDF();
     doc.text("BORC HESAPLAMA RAPORU", 105, 15, {align:"center"});
@@ -463,7 +463,7 @@ function loadJSON(input) {
     reader.readAsText(file);
 }
 
-// MODAL YÖNETİMİ
+
 let curType = "";
 function showModal(type) {
     curType = type; renderModal();
@@ -481,7 +481,7 @@ function renderModal() {
 }
 function addRateRow() { rateData[curType].push({date: getToday(), rate: 0.09}); renderModal(); }
 
-// BASLAT
+
 document.getElementById("endDate1").value = getToday();
 document.getElementById("endDate2").value = getToday();
 document.getElementById("labStart").value = "2023-01-01";
