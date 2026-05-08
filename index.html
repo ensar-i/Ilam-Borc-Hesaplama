@@ -199,7 +199,6 @@ function formatNum(num) {
     return num.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// LABORATUVAR
 function runLabCalc() {
     let p = parseNum(document.getElementById("labPrincipal").value);
     let type = document.getElementById("labType").value;
@@ -218,7 +217,6 @@ function addLabResultToMain() {
     }
 }
 
-// ANA EKLEME FONKSIYONLARI
 function addPrincipal(name = "", amount = "", type = "yasal", lockType = false, customDate = null) {
     let row = document.querySelector("#principalTable tbody").insertRow();
     row.innerHTML = `
@@ -311,7 +309,6 @@ function updateInterestSelectors() {
     });
 }
 
-// YENİ FAİZ TÜRÜ EKLEME
 function addNewInterestType() {
     let nameInput = document.getElementById("newInterestName");
     let name = nameInput.value.trim().toLowerCase().replace(/\s+/g, '_');
@@ -322,7 +319,6 @@ function addNewInterestType() {
     nameInput.value = "";
 }
 
-// HESAPLAMA MANTIGI
 function stepCalc(principal, start, end, type) {
     if (type === 'faizsiz' || !rateData[type] || principal <= 0) return 0;
     let total = 0;
@@ -425,7 +421,6 @@ function clearAll() {
         addPrincipal("Yargılama Gideri");
     }
 }
-
 
 function downloadPDF() {
     const { jsPDF } = window.jspdf; const doc = new jsPDF();
