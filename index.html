@@ -1,51 +1,50 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-	<meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="google-site-verification" content="LU-1lhM4pSTDLKlZqp0ZvLoZuRCq7JuAEBbdwfKG7E8" />
-	<title>Borç Hesaplama</title>
-	<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.25/dist/jspdf.plugin.autotable.min.js"></script>
-    
+    <title>Borç Hesaplama</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.25/dist/jspdf.plugin.autotable.min.js"></script>
+
     <style>
         :root { --primary: #2c3e50; --success: #27ae60; --danger: #c0392b; --blue: #3498db; --warning: #f39c12; --purple: #8e44ad; --light: #ecf0f1; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 20px; background: #f4f7f6; color: #333; }
         .container { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 1200px; margin: auto; }
         h2 { color: var(--primary); text-align: center; border-bottom: 2px solid var(--blue); padding-bottom: 10px; margin-top: 0; }
-        
+
         table { width: 100%; border-collapse: collapse; margin-bottom: 15px; background: white; font-size: 14px; }
         th { background: var(--primary); color: white; padding: 12px; text-align: left; }
         td { border: 1px solid #ddd; padding: 8px; }
-        
+
         input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         .btn { cursor: pointer; border: none; border-radius: 4px; padding: 10px 15px; font-weight: bold; transition: 0.3s; display: inline-flex; align-items: center; gap: 5px; }
         .btn-add { background: var(--success); color: white; margin-bottom: 10px; }
-        
+
         .calc-action-area { display: flex; align-items: stretch; gap: 10px; margin-top: 15px; }
         .btn-calc { background: var(--success); color: white; padding: 15px; font-size: 18px; flex: 4; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn-clear { background: var(--danger); color: white; padding: 10px; font-size: 13px; flex: 1; justify-content: center; }
         .btn-calc:hover { background: #219150; transform: translateY(-1px); }
         .btn-clear:hover { background: #a93226; }
-        
+
         .lab-panel { background: #fff3e0; padding: 15px; border: 2px solid var(--warning); border-radius: 8px; margin: 20px 0; }
         .lab-grid { display: grid; grid-template-columns: 2fr 1.5fr 1.2fr 1.2fr 1.5fr auto; gap: 10px; align-items: end; }
-        
+
         .calc-row { background: #eef2f3; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #d1d8dd; }
         .date-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 10px; }
-        
+
         .results-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
         .result-box { background: #fff; border: 2px solid #ddd; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .summary-card { background: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 10px; border-left: 5px solid var(--blue); font-weight: bold; }
         .total-badge { background: var(--primary); color: white; padding: 12px; border-radius: 5px; text-align: center; font-size: 18px; margin-top: 10px; font-weight: bold; }
-        
+
         .modal { display:none; position:fixed; top:50%; left:50%; transform: translate(-50%, -50%); width:650px; background:white; border-radius:8px; padding:20px; box-shadow:0 0 30px rgba(0,0,0,0.5); z-index:1000; }
         .overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:999; }
         .settings-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
         #fileInput { display: none; }
         .info-text { color: #666; font-size: 12px; margin-top: 5px; display: block; }
 
-        /* Yeni Faiz Türü Ekleme Alanı */
         .new-type-area { text-align: center; margin-top: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px dashed #ccc; }
     </style>
 </head>
@@ -78,7 +77,8 @@
                 <th width="5%">Sil</th>
             </tr>
         </thead>
-        <tbody oninput="calculate()" onchange="calculate()"></tbody>
+        <!-- FIX: debounced calculate on input/change -->
+        <tbody oninput="debouncedCalc()" onchange="debouncedCalc()"></tbody>
     </table>
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
         <button class="btn btn-add" onclick="addPrincipal('Asıl Alacak')">➕ Asıl Alacak</button>
@@ -86,7 +86,7 @@
         <button class="btn btn-add" onclick="addPrincipal('Yargılama Gideri')">➕ Yargılama Gideri</button>
         <button class="btn btn-add" style="background:var(--warning)" onclick="addPrincipal('')">➕ Manuel Kalem</button>
     </div>
-    <small class="info-text">* "Alacak Kalemleri" ekleyebilirsiniz. "Manuel Kalem" ile kendi alacak türünüzü ekleyebilirsiniz. Silmek istediğinizi silebilirsiniz.</small>
+    <small class="info-text">* "Alacak Kalemleri" ekleyebilirsiniz. "Manuel Kalem" ile kendi alacak türünüzü ekleyebilirsiniz.</small>
 
     <h3 style="margin-top:30px;">2. Tahsilat / Ara Ödemeler</h3>
     <table id="paymentTable">
@@ -98,7 +98,8 @@
                 <th width="10%">Sil</th>
             </tr>
         </thead>
-        <tbody oninput="calculate()" onchange="calculate()"></tbody>
+        <!-- FIX: debounced calculate on input/change -->
+        <tbody oninput="debouncedCalc()" onchange="debouncedCalc()"></tbody>
     </table>
     <button class="btn btn-add" onclick="addPayment()">➕ Ödeme Ekle</button>
     <small class="info-text">* Ara ödemeler varsa ekleyebilirsiniz. Ara ödemeler, TBK m. 100'e göre hesaplanacaktır.</small>
@@ -108,12 +109,12 @@
             <div><label><b>1. Hesap Tarihi:</b></label><input type="date" id="endDate1" onchange="calculate()"></div>
             <div><label><b>2. Hesap Tarihi:</b></label><input type="date" id="endDate2" onchange="calculate()"></div>
         </div>
-        
+
         <div class="calc-action-area">
             <button class="btn btn-calc" onclick="calculate()">⚙️ HESAPLAMALARI GÜNCELLE</button>
             <button class="btn btn-clear" onclick="clearAll()">🗑️ TEMİZLE</button>
         </div>
-        
+
         <small class="info-text">* "Takip Tarihi" veya "Güncel Tarih" durumuna göre seçeceğiniz iki farklı tarih için hesap yapabilirsiniz.</small>
     </div>
 
@@ -125,25 +126,26 @@
     <div style="margin-top:20px; display:flex; gap:10px; justify-content: center; flex-wrap: wrap;">
         <button class="btn" style="background:#666; color:white;" onclick="downloadPDF()">📄 PDF Kaydet</button>
         <button class="btn" style="background:#27ae60; color:white;" onclick="downloadExcel()">📊 Excel Kaydet</button>
-        <button class="btn" style="background:var(--purple); color:white" onclick="saveJSON()">💾 Ayarları Yedekle</button>
+        <!-- FIX: "Yedekle" now saves full state (tables + rate data) -->
+        <button class="btn" style="background:var(--purple); color:white" onclick="saveJSON()">💾 Tümünü Yedekle</button>
         <input type="file" id="fileInput" accept=".json" onchange="loadJSON(this)">
         <button class="btn" style="background:var(--primary); color:white" onclick="document.getElementById('fileInput').click()">📂 Yedekten Geri Dön</button>
     </div>
-    <small class="info-text" style="text-align:center;">* Hesap sonucunu PDF ya da Excel formatında indirebilirsiniz. Ayarları yedekleyerek sonraki hesaplarda kullanabilir ya da yedekli ayardan geri getirebilirsiniz.</small>
+    <small class="info-text" style="text-align:center;">* "Tümünü Yedekle" ile tablo verileri ve faiz oranları birlikte kaydedilir.</small>
 
     <hr style="margin: 30px 0;">
-    
+
     <h3 style="text-align: center;">⚙️ Faiz Veri Seti Ayarları</h3>
     <div class="settings-btns" id="settingsContainer"></div>
-    
+
     <div class="new-type-area">
         <input type="text" id="newInterestName" placeholder="Yeni Faiz Adı (Örn: REESKONT)" style="width:250px; display:inline-block; margin-right:10px;">
         <button class="btn" style="background:var(--blue); color:white;" onclick="addNewInterestType()">➕ Yeni Faiz Türü Tanımla</button>
         <small class="info-text" style="margin-top:8px;">* Yeni bir faiz türü ismi girin ve açılan pencereden tarih ve oranları ekleyin.</small>
-    	<small class="info-text" style="text-align:center;">* Yasal Faiz ve Avans Faiz oranlarını güncelleyebilirsiniz. Güncelleme yaptıktan sonra "Ayarları Yedekle" butonunu tıklayın.</small>
-	</div>
-        
-	<small class="info-text" style="text-align:center;">Bu hesaplama bilgilendirme amaçlıdır. Hesaplamaların güncelliği ve doğruluğu kontrol edilmelidir.</small>
+        <small class="info-text" style="text-align:center;">* Yasal Faiz ve Avans Faiz oranlarını güncelleyebilirsiniz. Güncelleme yaptıktan sonra "Tümünü Yedekle" butonunu tıklayın.</small>
+    </div>
+
+    <small class="info-text" style="text-align:center;">Bu hesaplama bilgilendirme amaçlıdır. Hesaplamaların güncelliği ve doğruluğu kontrol edilmelidir.</small>
 </div>
 
 <div id="overlay" class="overlay" onclick="closeModal()"></div>
@@ -176,22 +178,36 @@ let rateData = {
         {date: "2022-12-31", rate: 0.1075}, {date: "2023-06-24", rate: 0.1675}, {date: "2023-09-01", rate: 0.2675},
         {date: "2023-09-28", rate: 0.3175}, {date: "2023-11-01", rate: 0.3675}, {date: "2023-12-01", rate: 0.4175},
         {date: "2023-12-23", rate: 0.4425}, {date: "2024-04-01", rate: 0.5175}, {date: "2024-12-28", rate: 0.4925},
-        {date: "2025-03-08", rate: 0.4425}, {date: "2025-09-17", rate: 0.4225}, {date: "2025-12-20", rate: 0.3975}
-    ]
-};
+        {date: "2025-03-08", rate: 0.4425}, {date: "2025-09-17", rate: 0.4225}, {date: "2025-12-20", rate: 
+function parseDate(str) {
+    if (!str) return new Date(NaN);
+    const parts = str.split('-');
+    if (parts.length !== 3) return new Date(NaN);
+    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+}
 
-const getToday = () => new Date().toISOString().split('T')[0];
+const getToday = () => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+};
 
 function formatAmountInput(el) {
     let val = el.value.replace(/\D/g, "");
-    if (!val) return;
-    el.value = (parseInt(val) / 100).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
-    if(el.id === 'labPrincipal') runLabCalc();
+    if (!val) {
+        el.value = "";                                  // clear instead of early return with stale value
+        if (el.id === 'labPrincipal') runLabCalc();
+        return;
+    }
+    el.value = (parseInt(val, 10) / 100).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+    if (el.id === 'labPrincipal') runLabCalc();
 }
 
 function parseNum(str) {
-    if(!str) return 0;
-    let clean = str.toString().replace(/\./g,'').replace(',','.');
+    if (!str) return 0;
+    let clean = str.toString().replace(/\./g, '').replace(',', '.');
     return parseFloat(parseFloat(clean).toFixed(2)) || 0;
 }
 
@@ -199,19 +215,27 @@ function formatNum(num) {
     return num.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+let _calcTimer;
+function debouncedCalc() {
+    clearTimeout(_calcTimer);
+    _calcTimer = setTimeout(calculate, 300);
+}
+
 function runLabCalc() {
     let p = parseNum(document.getElementById("labPrincipal").value);
     let type = document.getElementById("labType").value;
-    let start = new Date(document.getElementById("labStart").value);
-    let end = new Date(document.getElementById("labEnd").value);
-    if(p > 0 && !isNaN(start) && !isNaN(end) && end > start) {
+    let start = parseDate(document.getElementById("labStart").value);   // FIX 1
+    let end   = parseDate(document.getElementById("labEnd").value);     // FIX 1
+    if (p > 0 && !isNaN(start) && !isNaN(end) && end > start) {
         document.getElementById("labResult").value = formatNum(stepCalc(p, start, end, type));
+    } else {
+        document.getElementById("labResult").value = "";
     }
 }
 
 function addLabResultToMain() {
     let res = parseNum(document.getElementById("labResult").value);
-    if(res > 0) {
+    if (res > 0) {
         addPrincipal('İşlemiş Faiz', res, 'faizsiz', true, document.getElementById("labEnd").value);
         calculate();
     }
@@ -220,21 +244,28 @@ function addLabResultToMain() {
 function addPrincipal(name = "", amount = "", type = "yasal", lockType = false, customDate = null) {
     let row = document.querySelector("#principalTable tbody").insertRow();
     row.innerHTML = `
-        <td><input class="pName" value="${name}" placeholder="Örn: Kıdem Tazminatı"></td>
-        <td><input class="pAmount" oninput="formatAmountInput(this)" value="${amount ? formatNum(amount) : ''}" placeholder="0,00"></td>
+        <td><input class="pName" value="${escapeHtml(name)}" placeholder="Örn: Kıdem Tazminatı"></td>
+        <td><input class="pAmount" oninput="formatAmountInput(this)" value="${amount ? formatNum(typeof amount === 'number' ? amount : parseNum(amount)) : ''}" placeholder="0,00"></td>
         <td><select class="pType" ${lockType ? 'disabled' : ''} onchange="calculate()"></select></td>
         <td><input type="date" class="pStart" value="${customDate || getToday()}"></td>
-        <td><button onclick="this.parentElement.parentElement.remove();calculate()" style="color:red; background:none; border:none; cursor:pointer">✖</button></td>`;
+        <td><button onclick="this.closest('tr').remove();calculate()" style="color:red; background:none; border:none; cursor:pointer">✖</button></td>`;
+
+    row.querySelector(".pType").dataset.pendingType = type;
     updateInterestSelectors();
 }
 
-function addPayment() {
+function addPayment(date = null, amount = "", desc = "") {
     let row = document.querySelector("#paymentTable tbody").insertRow();
     row.innerHTML = `
-        <td><input type="date" class="payDate" value="${getToday()}"></td>
-        <td><input class="payAmount" oninput="formatAmountInput(this)" placeholder="0,00"></td>
-        <td><input class="payDesc" placeholder="Örn: Maaş Haczi Tahsilatı"></td>
-        <td><button onclick="this.parentElement.parentElement.remove();calculate()" style="color:red; background:none; border:none; cursor:pointer">✖</button></td>`;
+        <td><input type="date" class="payDate" value="${date || getToday()}"></td>
+        <td><input class="payAmount" oninput="formatAmountInput(this)" value="${amount ? formatNum(typeof amount === 'number' ? amount : parseNum(amount)) : ''}" placeholder="0,00"></td>
+        <td><input class="payDesc" value="${escapeHtml(desc)}" placeholder="Örn: Maaş Haczi Tahsilatı"></td>
+        <td><button onclick="this.closest('tr').remove();calculate()" style="color:red; background:none; border:none; cursor:pointer">✖</button></td>`;
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function updateInterestSelectors() {
@@ -242,41 +273,34 @@ function updateInterestSelectors() {
     const labSelect = document.getElementById('labType');
     const settingsCont = document.getElementById('settingsContainer');
     const curLab = labSelect.value;
-    
+
     labSelect.innerHTML = '';
     settingsCont.innerHTML = '';
 
-    
     Object.keys(rateData).forEach(key => {
-    
-        let opt = document.createElement('option'); 
-        opt.value = key; 
+        let opt = document.createElement('option');
+        opt.value = key;
         opt.innerText = key.toUpperCase();
         labSelect.appendChild(opt);
 
-        
         const btnGroup = document.createElement('div');
-        btnGroup.style.display = "inline-flex";
-        btnGroup.style.alignItems = "center";
-        btnGroup.style.margin = "5px";
+        btnGroup.style.cssText = "display:inline-flex; align-items:center; margin:5px;";
 
-        
-        const btn = document.createElement('button'); 
-        btn.className = 'btn'; 
+        const btn = document.createElement('button');
+        btn.className = 'btn';
         btn.style.background = '#ddd';
         btn.style.borderRadius = (key !== 'yasal' && key !== 'avans') ? "4px 0 0 4px" : "4px";
-        btn.innerText = key.toUpperCase(); 
+        btn.innerText = key.toUpperCase();
         btn.onclick = () => showModal(key);
         btnGroup.appendChild(btn);
 
-        
         if (key !== 'yasal' && key !== 'avans') {
             const delBtn = document.createElement('button');
             delBtn.innerHTML = "✖";
             delBtn.style.cssText = "background:var(--danger); color:white; border:none; border-radius:0 4px 4px 0; cursor:pointer; padding:10px 10px; font-weight:bold; height:100%;";
             delBtn.onclick = (e) => {
                 e.stopPropagation();
-                if(confirm(`${key.toUpperCase()} faiz türünü tamamen silmek istediğinize emin misiniz?`)) {
+                if (confirm(`${key.toUpperCase()} faiz türünü tamamen silmek istediğinize emin misiniz?`)) {
                     delete rateData[key];
                     updateInterestSelectors();
                     calculate();
@@ -289,29 +313,28 @@ function updateInterestSelectors() {
 
     labSelect.value = rateData[curLab] ? curLab : 'yasal';
 
-   
     selects.forEach(select => {
-        const val = select.value; 
+        const desiredVal = select.dataset.pendingType !== undefined ? select.dataset.pendingType : select.value;
         select.innerHTML = '';
         Object.keys(rateData).forEach(k => {
-            const opt = document.createElement('option'); 
-            opt.value = k; 
+            const opt = document.createElement('option');
+            opt.value = k;
             opt.innerText = k.toUpperCase();
             select.appendChild(opt);
         });
-        const fz = document.createElement('option'); 
-        fz.value = 'faizsiz'; 
+        const fz = document.createElement('option');
+        fz.value = 'faizsiz';
         fz.innerText = 'FAİZSİZ';
         select.appendChild(fz);
-        
-   
-        select.value = (rateData[val] || val === 'faizsiz') ? val : 'yasal';
+
+        select.value = (rateData[desiredVal] || desiredVal === 'faizsiz') ? desiredVal : 'yasal';
+        delete select.dataset.pendingType;
     });
 }
 
 function addNewInterestType() {
     let nameInput = document.getElementById("newInterestName");
-    let name = nameInput.value.trim().toLowerCase().replace(/\s+/g, '_');
+    let name = nameInput.value.trim().toLowerCase().replace(/[^a-z0-9_çğışöü]/g, '_');
     if (!name || rateData[name]) { alert("Lütfen geçerli ve benzersiz bir isim girin!"); return; }
     rateData[name] = [{date: getToday(), rate: 0.09}];
     updateInterestSelectors();
@@ -322,12 +345,12 @@ function addNewInterestType() {
 function stepCalc(principal, start, end, type) {
     if (type === 'faizsiz' || !rateData[type] || principal <= 0) return 0;
     let total = 0;
-    let rates = [...rateData[type]].sort((a,b) => new Date(a.date) - new Date(b.date));
+    let rates = [...rateData[type]].sort((a, b) => parseDate(a.date) - parseDate(b.date));
     rates.forEach((r, i) => {
-        let rStart = new Date(r.date);
-        let rEnd = (rates[i+1]) ? new Date(rates[i+1].date) : new Date(end);
-        let cStart = new Date(Math.max(start, rStart));
-        let cEnd = new Date(Math.min(end, rEnd));
+        let rStart = parseDate(r.date);
+        let rEnd = rates[i + 1] ? parseDate(rates[i + 1].date) : new Date(end.getTime());
+        let cStart = new Date(Math.max(start.getTime(), rStart.getTime()));
+        let cEnd   = new Date(Math.min(end.getTime(), rEnd.getTime()));
         if (cStart < cEnd) {
             let days = Math.round((cEnd - cStart) / 86400000);
             total += principal * r.rate * (days / 365);
@@ -337,8 +360,8 @@ function stepCalc(principal, start, end, type) {
 }
 
 function calculate() {
-    processCalculation(new Date(document.getElementById("endDate1").value), "result1");
-    processCalculation(new Date(document.getElementById("endDate2").value), "result2");
+    processCalculation(parseDate(document.getElementById("endDate1").value), "result1");   // FIX 1
+    processCalculation(parseDate(document.getElementById("endDate2").value), "result2");   // FIX 1
 }
 
 function processCalculation(endDate, targetId) {
@@ -346,11 +369,11 @@ function processCalculation(endDate, targetId) {
     let items = [];
     document.querySelectorAll("#principalTable tbody tr").forEach(tr => {
         let amt = parseNum(tr.querySelector(".pAmount").value);
-        if(amt > 0) items.push({
+        if (amt > 0) items.push({
             name: tr.querySelector(".pName").value,
             amount: amt,
             type: tr.querySelector(".pType").value,
-            lastDate: new Date(tr.querySelector(".pStart").value),
+            lastDate: parseDate(tr.querySelector(".pStart").value),   // FIX 1
             interest: 0
         });
     });
@@ -358,17 +381,17 @@ function processCalculation(endDate, targetId) {
     let pays = [];
     document.querySelectorAll("#paymentTable tbody tr").forEach(tr => {
         let amt = parseNum(tr.querySelector(".payAmount").value);
-        let dt = new Date(tr.querySelector(".payDate").value);
-        if(amt > 0 && !isNaN(dt.getTime())) pays.push({ date: dt, amount: amt });
+        let dt = parseDate(tr.querySelector(".payDate").value);         // FIX 1
+        if (amt > 0 && !isNaN(dt.getTime())) pays.push({ date: dt, amount: amt });
     });
-    pays.sort((a,b) => a.date - b.date);
+    pays.sort((a, b) => a.date - b.date);
 
     pays.forEach(pay => {
         if (pay.date > endDate) return;
         items.forEach(p => {
             if (pay.date > p.lastDate) {
                 p.interest += stepCalc(p.amount, p.lastDate, pay.date, p.type);
-                p.lastDate = new Date(pay.date);
+                p.lastDate = new Date(pay.date.getTime());
             }
         });
         let rem = pay.amount;
@@ -404,35 +427,74 @@ function renderResult(data, date, targetId) {
                 <table id="table-${targetId}">
                 <thead><tr><th>Kalem</th><th>Kalan Anapara</th><th>Faiz</th><th>Toplam</th></tr></thead><tbody>`;
     data.forEach(p => {
-        html += `<tr><td>${p.name}</td><td>${formatNum(p.amount)}</td><td>${formatNum(p.interest)}</td><td><b>${formatNum(p.amount+p.interest)}</b></td></tr>`;
+        html += `<tr>
+            <td>${escapeHtml(p.name)}</td>
+            <td>${formatNum(p.amount)}</td>
+            <td>${formatNum(p.interest)}</td>
+            <td><b>${formatNum(p.amount + p.interest)}</b></td>
+        </tr>`;
     });
     html += `</tbody></table><div class="total-badge">GENEL TOPLAM: ${formatNum(tP + tI)} TL</div>`;
     div.innerHTML = html;
 }
 
 function clearAll() {
-    if(confirm("Tüm tablo verileri silinecek. Emin misiniz?")) {
+    if (confirm("Tüm tablo verileri silinecek. Emin misiniz?")) {
         document.querySelector("#principalTable tbody").innerHTML = "";
         document.querySelector("#paymentTable tbody").innerHTML = "";
         document.getElementById("result1").innerHTML = "";
         document.getElementById("result2").innerHTML = "";
+        document.getElementById("labPrincipal").value = "";
+        document.getElementById("labResult").value = "";
+        document.getElementById("labStart").value = "2023-01-01";
+        document.getElementById("labEnd").value = getToday();
         addPrincipal("Asıl Alacak");
         addPrincipal("İlam Vekalet Ücreti");
         addPrincipal("Yargılama Gideri");
     }
 }
 
+function trToAscii(str) {
+    if (!str) return '';
+    return str
+        .replace(/ş/g,'s').replace(/Ş/g,'S')
+        .replace(/ğ/g,'g').replace(/Ğ/g,'G')
+        .replace(/ü/g,'u').replace(/Ü/g,'U')
+        .replace(/ö/g,'o').replace(/Ö/g,'O')
+        .replace(/ı/g,'i').replace(/İ/g,'I')
+        .replace(/ç/g,'c').replace(/Ç/g,'C');
+}
+
+function pdfSafeTable(tableId) {
+    const el = document.querySelector(`#${tableId}`);
+    if (!el) return null;
+    const rows = [];
+    el.querySelectorAll('tr').forEach(tr => {
+        const cells = [];
+        tr.querySelectorAll('th, td').forEach(td => cells.push(trToAscii(td.innerText.trim())));
+        if (cells.length) rows.push(cells);
+    });
+    return rows;
+}
+
 function downloadPDF() {
-    const { jsPDF } = window.jspdf; const doc = new jsPDF();
-    doc.text("BORC HESAPLAMA RAPORU", 105, 15, {align:"center"});
-    if(document.querySelector("#table-result1")) {
-        doc.text(`1. Tarih: ${document.getElementById("endDate1").value}`, 14, 25);
-        doc.autoTable({ html: '#table-result1', startY: 28 });
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text("BORC HESAPLAMA RAPORU", 105, 15, { align: "center" });
+
+    const rows1 = pdfSafeTable("table-result1");
+    if (rows1) {
+        const d1 = trToAscii(document.getElementById("endDate1").value);
+        doc.text(`1. Tarih: ${d1}`, 14, 25);
+        doc.autoTable({ head: [rows1[0]], body: rows1.slice(1), startY: 28 });
     }
-    let nY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 15 : 25;
-    if(document.querySelector("#table-result2")) {
-        doc.text(`2. Tarih: ${document.getElementById("endDate2").value}`, 14, nY);
-        doc.autoTable({ html: '#table-result2', startY: nY + 3 });
+
+    let nY = (doc.lastAutoTable ? doc.lastAutoTable.finalY : 25) + 15;
+    const rows2 = pdfSafeTable("table-result2");
+    if (rows2) {
+        const d2 = trToAscii(document.getElementById("endDate2").value);
+        doc.text(`2. Tarih: ${d2}`, 14, nY);
+        doc.autoTable({ head: [rows2[0]], body: rows2.slice(1), startY: nY + 3 });
     }
     doc.save("Rapor.pdf");
 }
@@ -441,41 +503,165 @@ function downloadExcel() {
     let wb = XLSX.utils.book_new();
     ["result1", "result2"].forEach((id, i) => {
         const el = document.querySelector(`#table-${id}`);
-        if(el) XLSX.utils.book_append_sheet(wb, XLSX.utils.table_to_sheet(el), "Hesap " + (i+1));
+        if (el) XLSX.utils.book_append_sheet(wb, XLSX.utils.table_to_sheet(el), "Hesap " + (i + 1));
     });
     XLSX.writeFile(wb, "Rapor.xlsx");
 }
 
-function saveJSON() { 
-    const data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(rateData));
-    const a = document.createElement('a'); a.href = data; a.download = "faiz_yedek.json"; a.click();
+function saveJSON() {
+    const principals = [];
+    document.querySelectorAll("#principalTable tbody tr").forEach(tr => {
+        principals.push({
+            name:     tr.querySelector(".pName").value,
+            amount:   parseNum(tr.querySelector(".pAmount").value),
+            type:     tr.querySelector(".pType").value,
+            lockType: tr.querySelector(".pType").disabled,
+            start:    tr.querySelector(".pStart").value
+        });
+    });
+
+    const payments = [];
+    document.querySelectorAll("#paymentTable tbody tr").forEach(tr => {
+        payments.push({
+            date:   tr.querySelector(".payDate").value,
+            amount: parseNum(tr.querySelector(".payAmount").value),
+            desc:   tr.querySelector(".payDesc").value
+        });
+    });
+
+    const state = {
+        version:  2,
+        savedAt:  new Date().toISOString(),
+        rateData,
+        principals,
+        payments,
+        endDate1: document.getElementById("endDate1").value,
+        endDate2: document.getElementById("endDate2").value
+    };
+
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = "borc_yedek.json";
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
 function loadJSON(input) {
-    const file = input.files[0]; if (!file) return;
+    const file = input.files[0];
+    if (!file) return;
     const reader = new FileReader();
-    reader.onload = (e) => { rateData = JSON.parse(e.target.result); updateInterestSelectors(); calculate(); };
-    reader.readAsText(file);
-}
+    reader.onload = (e) => {
+        try {
+            const state = JSON.parse(e.target.result);
 
+            if (state.version === 2) {
+                // Full state restore
+                rateData = state.rateData;
+                document.querySelector("#principalTable tbody").innerHTML = "";
+                document.querySelector("#paymentTable tbody").innerHTML = "";
+
+                (state.principals || []).forEach(p =>
+                    addPrincipal(p.name, p.amount, p.type, p.lockType || false, p.start)
+                );
+                (state.payments || []).forEach(p =>
+                    addPayment(p.date, p.amount, p.desc)
+                );
+                if (state.endDate1) document.getElementById("endDate1").value = state.endDate1;
+                if (state.endDate2) document.getElementById("endDate2").value = state.endDate2;
+
+            } else if (state.rateData || (state.yasal && state.avans)) {
+                // Legacy v1: only rateData saved
+                rateData = state.rateData || state;
+            } else {
+                throw new Error("Tanımsız format");
+            }
+
+            updateInterestSelectors();
+            calculate();
+            alert("Yedek başarıyla geri yüklendi.");
+        } catch (err) {
+            alert("Dosya okunamadı veya geçersiz format. Lütfen geçerli bir yedek dosyası seçin.");
+            console.error(err);
+        }
+    };
+    reader.readAsText(file);
+    input.value = ""; 
+}
 
 let curType = "";
+
 function showModal(type) {
-    curType = type; renderModal();
-    document.getElementById("modal").style.display="block"; document.getElementById("overlay").style.display="block";
+    curType = type;
+    document.getElementById("modalTitle").textContent = `${type.toUpperCase()} Oranları`;
+    renderModal();
+    document.getElementById("modal").style.display = "block";
+    document.getElementById("overlay").style.display = "block";
 }
-function closeModal() { document.getElementById("modal").style.display="none"; document.getElementById("overlay").style.display="none"; runLabCalc(); calculate(); }
+
+function closeModal() {
+    document.getElementById("modal").style.display = "none";
+    document.getElementById("overlay").style.display = "none";
+    runLabCalc();
+    calculate();
+}
+
 function renderModal() {
-    let tbl = document.getElementById("modalTable"); tbl.innerHTML = "<tr><th>Tarih</th><th>Oran %</th><th>X</th></tr>";
-    rateData[curType].sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach((r,i)=>{
-        let row = tbl.insertRow();
-        row.innerHTML = `<td><input type="date" value="${r.date}" onchange="rateData['${curType}'][${i}].date=this.value"></td>
-            <td><input type="number" step="0.01" value="${(r.rate*100).toFixed(2)}" placeholder="9.00" onchange="rateData['${curType}'][${i}].rate=this.value/100"></td>
-            <td><button onclick="rateData['${curType}'].splice(${i},1);renderModal()" style="color:red; background:none; border:none;">✖</button></td>`;
+    const tbl = document.getElementById("modalTable");
+    tbl.innerHTML = "";
+
+    const hRow = tbl.insertRow();
+    ["Tarih", "Oran %", "Sil"].forEach(txt => {
+        const th = document.createElement('th');
+        th.textContent = txt;
+        hRow.appendChild(th);
+    });
+
+    const sorted = [...rateData[curType]].sort((a, b) => parseDate(a.date) - parseDate(b.date));
+    rateData[curType] = sorted;
+
+    sorted.forEach((r, i) => {
+        const row = tbl.insertRow();
+
+        const dateInput = document.createElement('input');
+        dateInput.type = 'date';
+        dateInput.value = r.date;
+        dateInput.style.width = '100%';
+        dateInput.addEventListener('change', function () {
+            rateData[curType][i].date = this.value;
+        });
+        const tdDate = row.insertCell();
+        tdDate.appendChild(dateInput);
+
+        const rateInput = document.createElement('input');
+        rateInput.type = 'number';
+        rateInput.step = '0.01';
+        rateInput.min = '0';
+        rateInput.value = (r.rate * 100).toFixed(2);
+        rateInput.style.width = '100%';
+        rateInput.addEventListener('change', function () {
+            rateData[curType][i].rate = parseFloat(this.value) / 100 || 0;
+        });
+        const tdRate = row.insertCell();
+        tdRate.appendChild(rateInput);
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '✖';
+        delBtn.style.cssText = 'color:red; background:none; border:none; cursor:pointer; font-size:14px;';
+        delBtn.addEventListener('click', () => {
+            rateData[curType].splice(i, 1);
+            renderModal();
+        });
+        const tdDel = row.insertCell();
+        tdDel.appendChild(delBtn);
     });
 }
-function addRateRow() { rateData[curType].push({date: getToday(), rate: 0.09}); renderModal(); }
 
+function addRateRow() {
+    rateData[curType].push({ date: getToday(), rate: 0.09 });
+    renderModal();
+}
 
 document.getElementById("endDate1").value = getToday();
 document.getElementById("endDate2").value = getToday();
